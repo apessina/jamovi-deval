@@ -1,0 +1,24 @@
+---
+title: Statistics for Diagnostic Test Evaluation
+name: DiagnosticTest
+version: 0.1.0
+jms: '1.0'
+authors:
+  - André L. R. Pessina
+maintainer: André L. R. Pessina <apessina@ufmg.br>
+date: '2025-03-25'
+type: R
+description: >-
+  This package provides statistical analyses to evaluate a diagnostic  test,
+  based on clinical trials results. In this vesion, only the ROC Analysis for
+  Continuous Predictors is available.
+analyses:
+  - title: ROC Analysis for Continuous Predictors
+    name: ROC
+    ns: DiagnosticTest
+    menuGroup: DiagnosticTest
+    menuTitle: ROC Analysis for Continuous Predictors
+usesNative: true
+minApp: 1.0.8
+
+...

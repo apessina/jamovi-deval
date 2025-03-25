@@ -1,0 +1,47 @@
+---
+name:  ROC
+title: ROC Analysis for Continuous Predictors
+jrs:   '1.1'
+
+items:
+    - name:  text
+      title: ROC Analysis for Continuous Predictors
+      type:  Preformatted
+      
+    - name:  tableMain
+      title: ROC Curve Statistics
+      type: Table
+      rows:  1
+      columns:
+        - name: var
+          title: ''
+          type: text
+        - name: AUC
+          type: number
+      
+    - name:  tableCo
+      visible: FALSE
+      title: Cut-offs
+      type: Table
+      rows:  0
+      columns:
+        - name: Cutoff
+          title: 'Cut-off'
+          type: number
+        - name: Sensitivity
+          type: number
+        - name: Specificity
+          type: number
+        - name: Youden
+          title: 'Youden’s J'
+          type: number
+        - name: Topleft
+          title: 'Top-left dist.'
+          type: number
+      
+    - name: plot
+      title: ROC Curve
+      type: Image
+      width:  400
+      height: 400
+      renderFun: .plot

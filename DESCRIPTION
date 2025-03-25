@@ -1,0 +1,13 @@
+Package: DiagnosticTest
+Type: Package
+Title: Statistics for Diagnostic Test Evaluation
+Version: 0.1.0
+Author: André L. R. Pessina
+Maintainer: André L. R. Pessina <apessina@ufmg.br>
+Description: This package provides statistical analyses to evaluate a diagnostic
+    test, based on clinical trials results. In this vesion, only the ROC Analysis 
+    for Continuous Predictors is available.
+License: use_gpl_license(version = 3, include_future = TRUE)
+Encoding: UTF-8
+LazyData: true
+Imports: jmvcore (>= 0.8.5), R6, pROC

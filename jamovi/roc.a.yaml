@@ -1,0 +1,23 @@
+---
+name:  ROC
+title: ROC Analysis for Continuous Predictors
+menuGroup: DiagnosticTest
+version: '0.1.0'
+jas: '1.2'
+
+options:
+    - name: data
+      type: Data
+
+    - name: varPred
+      title: Continuous Predictior Variable
+      type: Variable
+
+    - name: varOutc
+      title: Binary Case-Control Variable
+      type: Variable
+      
+    - name: boolCo
+      title: View cut-offs table
+      type: Bool
+      default: FALSE
