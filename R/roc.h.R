@@ -8,6 +8,7 @@ ROCOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
         initialize = function(
             varPred = NULL,
             varOutc = NULL,
+            DeLongCl = 95,
             boolCo = FALSE, ...) {
 
             super$initialize(
@@ -18,10 +19,24 @@ ROCOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
 
             private$..varPred <- jmvcore::OptionVariable$new(
                 "varPred",
-                varPred)
+                varPred,
+                suggested=list(
+                    "continuous"),
+                permitted=list(
+                    "numeric"))
             private$..varOutc <- jmvcore::OptionVariable$new(
                 "varOutc",
-                varOutc)
+                varOutc,
+                suggested=list(
+                    "nominal"),
+                permitted=list(
+                    "factor"))
+            private$..DeLongCl <- jmvcore::OptionNumber$new(
+                "DeLongCl",
+                DeLongCl,
+                min=50,
+                max=99.9,
+                default=95)
             private$..boolCo <- jmvcore::OptionBool$new(
                 "boolCo",
                 boolCo,
@@ -29,15 +44,18 @@ ROCOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
 
             self$.addOption(private$..varPred)
             self$.addOption(private$..varOutc)
+            self$.addOption(private$..DeLongCl)
             self$.addOption(private$..boolCo)
         }),
     active = list(
         varPred = function() private$..varPred$value,
         varOutc = function() private$..varOutc$value,
+        DeLongCl = function() private$..DeLongCl$value,
         boolCo = function() private$..boolCo$value),
     private = list(
         ..varPred = NA,
         ..varOutc = NA,
+        ..DeLongCl = NA,
         ..boolCo = NA)
 )
 
@@ -45,7 +63,6 @@ ROCResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
     "ROCResults",
     inherit = jmvcore::Group,
     active = list(
-        text = function() private$.items[["text"]],
         tableMain = function() private$.items[["tableMain"]],
         tableCo = function() private$.items[["tableCo"]],
         plot = function() private$.items[["plot"]]),
@@ -56,15 +73,13 @@ ROCResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 options=options,
                 name="",
                 title="ROC Analysis for Continuous Predictors")
-            self$add(jmvcore::Preformatted$new(
-                options=options,
-                name="text",
-                title="ROC Analysis for Continuous Predictors"))
             self$add(jmvcore::Table$new(
                 options=options,
                 name="tableMain",
-                title="ROC Curve Statistics",
+                title="Area Under the ROC Curve",
                 rows=1,
+                notes=list(
+                    `CI`="Normal-based CI with AUC variance from DeLong's method"),
                 columns=list(
                     list(
                         `name`="var", 
@@ -72,31 +87,44 @@ ROCResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                         `type`="text"),
                     list(
                         `name`="AUC", 
-                        `type`="number"))))
+                        `type`="number"),
+                    list(
+                        `name`="CI", 
+                        `title`="Confidence interval", 
+                        `type`="text"))))
             self$add(jmvcore::Table$new(
                 options=options,
                 name="tableCo",
-                visible=FALSE,
+                visible="(boolCo)",
                 title="Cut-offs",
-                rows=0,
                 columns=list(
                     list(
                         `name`="Cutoff", 
                         `title`="Cut-off", 
                         `type`="number"),
                     list(
-                        `name`="Sensitivity", 
+                        `name`="TPR", 
+                        `title`="Sensitivity (TPR)", 
                         `type`="number"),
                     list(
-                        `name`="Specificity", 
+                        `name`="FPR", 
+                        `title`="1-Specificity (FPR)", 
                         `type`="number"),
                     list(
-                        `name`="Youden", 
-                        `title`="Youden\u2019s J", 
+                        `name`="TNR", 
+                        `title`="Specificity (TNR)", 
+                        `type`="number"),
+                    list(
+                        `name`="FNR", 
+                        `title`="1-Sensitivity (FNR)", 
                         `type`="number"),
                     list(
                         `name`="Topleft", 
                         `title`="Top-left dist.", 
+                        `type`="number"),
+                    list(
+                        `name`="Youden", 
+                        `title`="Youden\u2019s J", 
                         `type`="number"))))
             self$add(jmvcore::Image$new(
                 options=options,
@@ -133,10 +161,10 @@ ROCBase <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
 #' @param data .
 #' @param varPred .
 #' @param varOutc .
+#' @param DeLongCl .
 #' @param boolCo .
 #' @return A results object containing:
 #' \tabular{llllll}{
-#'   \code{results$text} \tab \tab \tab \tab \tab a preformatted \cr
 #'   \code{results$tableMain} \tab \tab \tab \tab \tab a table \cr
 #'   \code{results$tableCo} \tab \tab \tab \tab \tab a table \cr
 #'   \code{results$plot} \tab \tab \tab \tab \tab an image \cr
@@ -153,6 +181,7 @@ ROC <- function(
     data,
     varPred,
     varOutc,
+    DeLongCl = 95,
     boolCo = FALSE) {
 
     if ( ! requireNamespace("jmvcore", quietly=TRUE))
@@ -166,10 +195,12 @@ ROC <- function(
             `if`( ! missing(varPred), varPred, NULL),
             `if`( ! missing(varOutc), varOutc, NULL))
 
+    for (v in varOutc) if (v %in% names(data)) data[[v]] <- as.factor(data[[v]])
 
     options <- ROCOptions$new(
         varPred = varPred,
         varOutc = varOutc,
+        DeLongCl = DeLongCl,
         boolCo = boolCo)
 
     analysis <- ROCClass$new(
