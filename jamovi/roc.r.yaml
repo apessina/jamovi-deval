@@ -4,41 +4,49 @@ title: ROC Analysis for Continuous Predictors
 jrs:   '1.1'
 
 items:
-    - name:  text
-      title: ROC Analysis for Continuous Predictors
-      type:  Preformatted
-      
     - name:  tableMain
-      title: ROC Curve Statistics
+      title: Area Under the ROC Curve
       type: Table
       rows:  1
+      notes:
+          CI: "Normal-based CI with AUC variance from DeLong's method"
       columns:
         - name: var
           title: ''
           type: text
         - name: AUC
           type: number
+        - name: CI
+          title: Confidence interval
+          type: text
       
     - name:  tableCo
-      visible: FALSE
+      visible: (boolCo)
       title: Cut-offs
       type: Table
-      rows:  0
       columns:
         - name: Cutoff
           title: 'Cut-off'
           type: number
-        - name: Sensitivity
+        - name: TPR
+          title: 'Sensitivity (TPR)'
           type: number
-        - name: Specificity
+        - name: FPR
+          title: '1-Specificity (FPR)'
+          type: number
+        - name: TNR
+          title: 'Specificity (TNR)'
+          type: number
+        - name: FNR
+          title: '1-Sensitivity (FNR)'
+          type: number  
+        - name: Topleft
+          title: 'Top-left dist.'
           type: number
         - name: Youden
           title: 'Youden’s J'
           type: number
-        - name: Topleft
-          title: 'Top-left dist.'
-          type: number
-      
+
     - name: plot
       title: ROC Curve
       type: Image
