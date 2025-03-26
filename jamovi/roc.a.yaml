@@ -10,14 +10,29 @@ options:
       type: Data
 
     - name: varPred
-      title: Continuous Predictior Variable
+      title: Predictior Variable
       type: Variable
+      suggested:
+        - continuous
+      permitted:
+        - numeric
 
     - name: varOutc
-      title: Binary Case-Control Variable
+      title: Case/Control Variable
       type: Variable
+      suggested:
+        - nominal
+      permitted:
+        - factor
+
+    - name: DeLongCl
+      title: Confidence level (%)
+      type: Number
+      min: 50
+      max: 99.9
+      default: 95
       
     - name: boolCo
-      title: View cut-offs table
+      title: Cut-offs table
       type: Bool
       default: FALSE
