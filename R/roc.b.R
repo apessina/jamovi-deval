@@ -1,8 +1,8 @@
 
 # This script is the core of the ROC Analysis using pROC R library. It uses one
 # continuous variable and one outcome variable from the UI to generate the ROC
-# curve statistics and the local maximas cut-offs table. At the end, the ROC
-# plot is also generated. Last edit: 25 March 2025.
+# curve, calculate AUC and the local maximas table. The ROC plot is printed.
+# Last edit: 26 March 2025; PESSINA, A. L. R.
 
 # Define the R6Class for the module
 ROCClass <- if (requireNamespace('jmvcore', quietly=TRUE)) R6::R6Class(
@@ -27,7 +27,7 @@ ROCClass <- if (requireNamespace('jmvcore', quietly=TRUE)) R6::R6Class(
       
       ## Check if the outcome variable is binary (0 and 1)
       if (length(levels(as.factor(data[[self$options$varOutc]]))) != 2) {
-        self$results$text$setContent("ATTENTION! The control (0) / case (1) variable must have 2 levels.")
+        self$results$text$setContent("ATTENTION! The case (1) / control (0) variable must have 2 levels.")
         return()
       }
       
@@ -42,15 +42,21 @@ ROCClass <- if (requireNamespace('jmvcore', quietly=TRUE)) R6::R6Class(
       ##  Calculate the ROC Curve using pROC library
       roc_obj <- pROC::roc(responses, predictors)
       
+      ## Calculate the Area Under the Curve with confidence interval
+      auc_ci <- pROC::ci.auc(roc_obj, conf.level=self$options$DeLongCl/100, 
+                             method="delong") # CI with DeLong's variance
+      
       ## Fill the main results one-line table
       tableMain <- self$results$tableMain
       tableMain$setRow(rowNo=1, values=list(
         var=self$options$varPred, # name of the predictor variable
-        AUC=pROC::auc(roc_obj) # AUC of the calculated curve
+        AUC=round(auc_ci[2], 3), # AUC value of the calculated curve
+        CI=sprintf("%d%%: %.3f–%.3f", # ex. 95%: 0.678-0.789 (DeLong)
+                   round(self$options$DeLongCl), auc_ci[1], auc_ci[3])
       ))
       
-      ## Get the local maximas cut-offs
-      roc_coords <- pROC::coords(roc_obj, x = "local maximas", ret = "all")
+      ## Get the local maximas
+      roc_coords <- pROC::coords(roc_obj, x="local maximas", ret="all")
       
       ## Fill the cut-offs table
       tableCo <- self$results$tableCo
@@ -58,16 +64,14 @@ ROCClass <- if (requireNamespace('jmvcore', quietly=TRUE)) R6::R6Class(
       for (i in seq_along(roc_coords$threshold)) { # one new row per cut-off
         tableCo$addRow(rowKey=i, values=list(
           Cutoff=roc_coords$threshold[i], # cut-off 
-          Sensitivity=roc_coords$sensitivity[i], # sensitivity of the cut-off 
-          Specificity=roc_coords$specificity[i], # specificity of the cut-off 
-          Youden=roc_coords$youden[i], # youden´s J of the cut-off 
-          Topleft=roc_coords$closest.topleft[i] # top-left dist. of the cut-off 
+          TPR=roc_coords$tpr[i], # sensitivity of the cut-off 
+          FPR=roc_coords$fpr[i], # 1-specificity of the cut-off 
+          TNR=roc_coords$tnr[i], # specificity of the cut-off 
+          FNR=roc_coords$fnr[i], # 1-sensitivity  of the cut-off 
+          Topleft=roc_coords$closest.topleft[i], # top-left dist. of the cut-off 
+          Youden=roc_coords$youden[i] # youden´s J of the cut-off 
         ))          
       }
-      
-      ## Finally, are the cut-offs table going to be visible as well?
-      if (self$options$boolCo == TRUE)
-        tableCo$setVisible(visible=TRUE)
       
       #######################################
       ##### Creating the ROC Curve plot #####
@@ -87,12 +91,13 @@ ROCClass <- if (requireNamespace('jmvcore', quietly=TRUE)) R6::R6Class(
         return(FALSE)
       
       ## Deactivate the default box around the plotting area
-      par(bty = "n")
+      par(bty="n")
       
       ## Create and set-up the ROC Curve plot using the pROC library
       pROC::plot.roc(
         image$state$responses, image$state$predictors, # variables
         percent=TRUE, # show the sensitivity and specificity as percentages
+        legacy.axes=TRUE, # increasing specificity axis (1-Specificity)
         main=self$options$varPred, # title: predictor name
         print.thres="local maximas", print.thres.pattern="%.2f", # cut-offs
         print.auc=TRUE, print.auc.x=40, print.auc.y=10, # auc position
