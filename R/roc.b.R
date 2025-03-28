@@ -2,7 +2,7 @@
 # This script is the core of the ROC Analysis using pROC R library. It uses one
 # continuous variable and one outcome variable from the UI to generate the ROC
 # curve, calculate AUC and the local maximas table. The ROC plot is printed.
-# Last edit: 26 March 2025; PESSINA, A. L. R.
+# Last edit: 28 March 2025; PESSINA, A. L. R.
 
 # Define the R6Class for the module
 ROCClass <- if (requireNamespace('jmvcore', quietly=TRUE)) R6::R6Class(
@@ -27,7 +27,6 @@ ROCClass <- if (requireNamespace('jmvcore', quietly=TRUE)) R6::R6Class(
       
       ## Check if the outcome variable is binary (0 and 1)
       if (length(levels(as.factor(data[[self$options$varOutc]]))) != 2) {
-        self$results$text$setContent("ATTENTION! The case (1) / control (0) variable must have 2 levels.")
         return()
       }
       
@@ -55,12 +54,34 @@ ROCClass <- if (requireNamespace('jmvcore', quietly=TRUE)) R6::R6Class(
                    round(self$options$DeLongCl), auc_ci[1], auc_ci[3])
       ))
       
+      ## Calculate DeLong's z with H₁: AUC ≠ 0.5
+      auc_se <- sqrt(pROC::var(roc_obj, method="delong")) # standard error
+      z <- (pROC::auc(roc_obj) - 0.5) / auc_se # z-test statistics
+      p <- 2 * (1 - pnorm(abs(z))) # p-value of the test
+      
+      ## Fill the z-test table
+      tablez <- self$results$tablez
+      tablez$setRow(rowNo=1, values=list(
+        var=self$options$varPred, # name of the predictor variable
+        test="DeLong's z", # name of the test
+        Statistics=z, # z-test statistics
+        p=p # p-value of the test
+      ))
+      
       ## Get the local maximas
       roc_coords <- pROC::coords(roc_obj, x="local maximas", ret="all")
+      
+      ## Set the note informing the direction of the curve
+      if (roc_obj$direction == ">") {
+        dirNote <- paste("Predict positive if:",self$options$varPred,"> cut-off")
+      } else {
+        dirNote <- paste("Predict positive if:",self$options$varPred,"< cut-off")
+      }
       
       ## Fill the cut-offs table
       tableCo <- self$results$tableCo
       tableCo$setTitle(self$options$varPred) # title: predictor name
+      tableCo$setNote("dir", dirNote, init=FALSE) # note: ROC curve direction
       for (i in seq_along(roc_coords$threshold)) { # one new row per cut-off
         tableCo$addRow(rowKey=i, values=list(
           Cutoff=roc_coords$threshold[i], # cut-off 
@@ -96,7 +117,7 @@ ROCClass <- if (requireNamespace('jmvcore', quietly=TRUE)) R6::R6Class(
       ## Create and set-up the ROC Curve plot using the pROC library
       pROC::plot.roc(
         image$state$responses, image$state$predictors, # variables
-        percent=TRUE, # show the sensitivity and specificity as percentages
+        percent=FALSE, # show the sensitivity and specificity as percentages
         legacy.axes=TRUE, # increasing specificity axis (1-Specificity)
         main=self$options$varPred, # title: predictor name
         print.thres="local maximas", print.thres.pattern="%.2f", # cut-offs
