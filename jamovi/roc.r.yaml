@@ -4,6 +4,7 @@ title: ROC Analysis for Continuous Predictors
 jrs:   '1.1'
 
 items:
+
     - name:  tableMain
       title: Area Under the ROC Curve
       type: Table
@@ -19,11 +20,34 @@ items:
         - name: CI
           title: Confidence interval
           type: text
+
+    - name:  tablez
+      visible: (boolz)
+      title: z-test for AUC
+      type: Table
+      rows:  1
+      notes:
+          hip: "H₁: AUC ≠ 0.5"
+      columns:
+        - name: var
+          title: ''
+          type: text
+        - name: test
+          title: ''
+          type: text
+        - name: Statistics
+          type: text
+        - name: p
+          title: p-value
+          type: number
+          format: zto,pvalue
       
     - name:  tableCo
       visible: (boolCo)
       title: Cut-offs
       type: Table
+      notes:
+          dir: NULL
       columns:
         - name: Cutoff
           title: 'Cut-off'
