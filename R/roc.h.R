@@ -9,6 +9,7 @@ ROCOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
             varPred = NULL,
             varOutc = NULL,
             DeLongCl = 95,
+            boolz = TRUE,
             boolCo = FALSE, ...) {
 
             super$initialize(
@@ -37,6 +38,10 @@ ROCOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 min=50,
                 max=99.9,
                 default=95)
+            private$..boolz <- jmvcore::OptionBool$new(
+                "boolz",
+                boolz,
+                default=TRUE)
             private$..boolCo <- jmvcore::OptionBool$new(
                 "boolCo",
                 boolCo,
@@ -45,17 +50,20 @@ ROCOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
             self$.addOption(private$..varPred)
             self$.addOption(private$..varOutc)
             self$.addOption(private$..DeLongCl)
+            self$.addOption(private$..boolz)
             self$.addOption(private$..boolCo)
         }),
     active = list(
         varPred = function() private$..varPred$value,
         varOutc = function() private$..varOutc$value,
         DeLongCl = function() private$..DeLongCl$value,
+        boolz = function() private$..boolz$value,
         boolCo = function() private$..boolCo$value),
     private = list(
         ..varPred = NA,
         ..varOutc = NA,
         ..DeLongCl = NA,
+        ..boolz = NA,
         ..boolCo = NA)
 )
 
@@ -64,6 +72,7 @@ ROCResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
     inherit = jmvcore::Group,
     active = list(
         tableMain = function() private$.items[["tableMain"]],
+        tablez = function() private$.items[["tablez"]],
         tableCo = function() private$.items[["tableCo"]],
         plot = function() private$.items[["plot"]]),
     private = list(),
@@ -94,9 +103,36 @@ ROCResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                         `type`="text"))))
             self$add(jmvcore::Table$new(
                 options=options,
+                name="tablez",
+                visible="(boolz)",
+                title="z-test for AUC",
+                rows=1,
+                notes=list(
+                    `hip`="H\u2081: AUC \u2260 0.5"),
+                columns=list(
+                    list(
+                        `name`="var", 
+                        `title`="", 
+                        `type`="text"),
+                    list(
+                        `name`="test", 
+                        `title`="", 
+                        `type`="text"),
+                    list(
+                        `name`="Statistics", 
+                        `type`="text"),
+                    list(
+                        `name`="p", 
+                        `title`="p-value", 
+                        `type`="number", 
+                        `format`="zto,pvalue"))))
+            self$add(jmvcore::Table$new(
+                options=options,
                 name="tableCo",
                 visible="(boolCo)",
                 title="Cut-offs",
+                notes=list(
+                    `dir`=NULL),
                 columns=list(
                     list(
                         `name`="Cutoff", 
@@ -142,7 +178,7 @@ ROCBase <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
             super$initialize(
                 package = "DiagnosticTest",
                 name = "ROC",
-                version = c(0,1,0),
+                version = c(0,1,2),
                 options = options,
                 results = ROCResults$new(options=options),
                 data = data,
@@ -162,10 +198,12 @@ ROCBase <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
 #' @param varPred .
 #' @param varOutc .
 #' @param DeLongCl .
+#' @param boolz .
 #' @param boolCo .
 #' @return A results object containing:
 #' \tabular{llllll}{
 #'   \code{results$tableMain} \tab \tab \tab \tab \tab a table \cr
+#'   \code{results$tablez} \tab \tab \tab \tab \tab a table \cr
 #'   \code{results$tableCo} \tab \tab \tab \tab \tab a table \cr
 #'   \code{results$plot} \tab \tab \tab \tab \tab an image \cr
 #' }
@@ -182,6 +220,7 @@ ROC <- function(
     varPred,
     varOutc,
     DeLongCl = 95,
+    boolz = TRUE,
     boolCo = FALSE) {
 
     if ( ! requireNamespace("jmvcore", quietly=TRUE))
@@ -201,6 +240,7 @@ ROC <- function(
         varPred = varPred,
         varOutc = varOutc,
         DeLongCl = DeLongCl,
+        boolz = boolz,
         boolCo = boolCo)
 
     analysis <- ROCClass$new(
