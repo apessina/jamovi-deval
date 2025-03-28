@@ -2,7 +2,7 @@
 name:  ROC
 title: ROC Analysis for Continuous Predictors
 menuGroup: DiagnosticTest
-version: '0.1.0'
+version: '0.1.2'
 jas: '1.2'
 
 options:
@@ -18,7 +18,7 @@ options:
         - numeric
 
     - name: varOutc
-      title: Case/Control Variable
+      title: Case (1) / Control (0) Variable
       type: Variable
       suggested:
         - nominal
@@ -31,6 +31,11 @@ options:
       min: 50
       max: 99.9
       default: 95
+      
+    - name: boolz
+      title: z-test for AUC
+      type: Bool
+      default: TRUE
       
     - name: boolCo
       title: Cut-offs table
