@@ -19,10 +19,10 @@ outcome coded as 1 for cases and 0 for controls.
 
 ## About last versions
 
-`0.1.2` Added DeLong's z-test table option with H₁: AUC ≠ 0.5, created 
-conditional description informing the direction of the ROC curve and changed 
-the plot, now with decimal scale for axis instead of percentage.  Variable 
-title now explicitly inform 1 for cases and 0 for controls.
+`0.1.2` Added DeLong's z-test option with H₁: AUC ≠ 0.5, added dynamic note for 
+cut-offs table informing the direction of the ROC curve and changed the plot, 
+now with decimal scale for axis instead of percentage. Variable title now explicitly 
+inform 1 for cases and 0 for controls.
 
 `0.1.1` Added the confidence interval for AUC with custom confidence level, new 
 metrics in local maximas table and changed the plot x-axis to increasing 1-Specificity. 
