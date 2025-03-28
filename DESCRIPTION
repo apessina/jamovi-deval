@@ -1,7 +1,7 @@
 Package: DiagnosticTest
 Type: Package
 Title: Statistics for Diagnostic Test Evaluation
-Version: 0.1.1
+Version: 0.1.2
 Author: André L. R. Pessina
 Maintainer: André L. R. Pessina <apessina@ufmg.br>
 Description: This package provides statistical analyses to evaluate a diagnostic
