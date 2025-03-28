@@ -1,12 +1,12 @@
 ---
 title: Statistics for Diagnostic Test Evaluation
 name: DiagnosticTest
-version: 0.1.1
+version: 0.1.2
 jms: '1.0'
 authors:
   - André L. R. Pessina
 maintainer: André L. R. Pessina <apessina@ufmg.br>
-date: '2025-03-25'
+date: '2025-03-28'
 type: R
 description: >-
   This package provides statistical analyses to evaluate a diagnostic  test,
