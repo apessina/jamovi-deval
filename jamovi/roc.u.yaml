@@ -16,7 +16,7 @@ children:
             maxItemCount: 1
             isTarget: true
       - type: TargetLayoutBox
-        label: Case/Control Variable
+        label: Case (1) / Control (0) Variable
         children:
           - type: VariablesListBox
             name: varOutc
@@ -31,5 +31,7 @@ children:
   - type: LayoutBox
     margin: large
     children:
+      - type: CheckBox
+        name: boolz
       - type: CheckBox
         name: boolCo
