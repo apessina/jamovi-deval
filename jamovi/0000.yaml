@@ -1,23 +1,24 @@
 ---
-title: Statistics for Diagnostic Test Evaluation
-name: DiagnosticTest
-version: 0.1.2
+title: Diagnostic Test Evaluation
+name: deval
+version: 0.1.3
 jms: '1.0'
 authors:
   - André L. R. Pessina
 maintainer: André L. R. Pessina <apessina@ufmg.br>
-date: '2025-03-28'
+date: '2025-04-05'
 type: R
 description: >-
-  This package provides statistical analyses to evaluate a diagnostic  test,
-  based on clinical trials results. In this vesion, only the ROC Analysis for
-  Continuous Predictors is available.
+  This package provides analyses to  evaluate the diagnostic performance of a
+  test using clinical or observational data. In this version, only the ROC
+  Analysis for Continuous Predictor is available. More information available on
+  <a href="https://github.com/apessina/jamovi-deval" target="_blank">GitHub</a>.
 analyses:
-  - title: ROC Analysis for Continuous Predictors
-    name: ROC
-    ns: DiagnosticTest
-    menuGroup: DiagnosticTest
-    menuTitle: ROC Analysis for Continuous Predictors
+  - title: ROC Analysis for Continuous Predictor
+    name: roc
+    ns: deval
+    menuGroup: Diagnostic
+    menuTitle: ROC Analysis for Continuous Predictor
 usesNative: true
 minApp: 1.0.8
 

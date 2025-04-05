@@ -1,12 +1,15 @@
-Package: DiagnosticTest
+Package: deval
 Type: Package
-Title: Statistics for Diagnostic Test Evaluation
-Version: 0.1.2
-Author: André L. R. Pessina
+Title: Diagnostic Test Evaluation
+Version: 0.1.3
+Author: person("André", "L. R. Pessina", 
+               role=c("aut", "cre", "cph"), 
+               email="apessina@ufmg.br")
 Maintainer: André L. R. Pessina <apessina@ufmg.br>
-Description: This package provides statistical analyses to evaluate a diagnostic
-    test, based on clinical trials results. In this vesion, only the ROC Analysis 
-    for Continuous Predictors is available.
+Description: This package provides analyses to  evaluate the diagnostic 
+  performance of a test using clinical or observational data. In this version, 
+  only the ROC Analysis for Continuous Predictor is available. More information 
+  available on GitHub.
 License: use_gpl_license(version = 3, include_future = TRUE)
 Encoding: UTF-8
 LazyData: true

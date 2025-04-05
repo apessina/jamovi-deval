@@ -1,6 +1,6 @@
 ---
-name:  ROC
-title: ROC Analysis for Continuous Predictors
+name:  roc
+title: ROC Analysis for Continuous Predictor
 jrs:   '1.1'
 
 items:
@@ -20,6 +20,9 @@ items:
         - name: CI
           title: Confidence interval
           type: text
+      refs: 
+        - deval
+        - pROC
 
     - name:  tablez
       visible: (boolz)
@@ -41,6 +44,9 @@ items:
           title: p-value
           type: number
           format: zto,pvalue
+      refs: 
+        - deval
+        - pROC
       
     - name:  tableCo
       visible: (boolCo)
@@ -53,23 +59,45 @@ items:
           title: 'Cut-off'
           type: number
         - name: TPR
+          visible: (cRates:tpr)
           title: 'Sensitivity (TPR)'
           type: number
         - name: FPR
+          visible: (cRates:fpr)
           title: '1-Specificity (FPR)'
           type: number
         - name: TNR
+          visible: (cRates:tnr)
           title: 'Specificity (TNR)'
           type: number
         - name: FNR
+          visible: (cRates:fnr)
           title: '1-Sensitivity (FNR)'
           type: number  
+        - name: Accuracy
+          visible: (pMetrics:accu)
+          type: number    
+        - name: bAccu
+          title: 'Bal. Accuracy'
+          visible: (pMetrics:bAccu)
+          type: number  
+        - name: Precision
+          visible: (pValue:prec)
+          type: number    
+        - name: NPV
+          visible: (pValue:npv)
+          type: number  
         - name: Topleft
+          visible: (cIndex:tl)
           title: 'Top-left dist.'
           type: number
         - name: Youden
+          visible: (cIndex:yo)
           title: 'Youden’s J'
           type: number
+      refs: 
+        - deval
+        - pROC
 
     - name: plot
       title: ROC Curve
@@ -77,3 +105,8 @@ items:
       width:  400
       height: 400
       renderFun: .plot
+      refs: 
+        - deval
+        - pROC
+
+...

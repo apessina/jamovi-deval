@@ -1,0 +1,19 @@
+---
+refs:
+    deval:
+        type: 'software'
+        author: Pessina, A. L. R.
+        year: 2025
+        title: 'deval: Diagnostic Test Evaluation'
+        publisher: '(Version 0.1.3) [jamovi module]. Retrieved from https://github.com/apessina/jamovi-deval'
+        url: https://github.com/apessina/jamovi-deval
+    
+    pROC:
+        type: 'article'
+        author: Robin, X. et al.
+        year: 2011
+        title: 'pROC: an open-source package for R and S+ to analyze and compare ROC curves'
+        publisher: 'BMC Bioinformatics'
+        volume: 12
+        pages: '77'
+...

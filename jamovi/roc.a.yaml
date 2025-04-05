@@ -1,8 +1,8 @@
 ---
-name:  ROC
-title: ROC Analysis for Continuous Predictors
-menuGroup: DiagnosticTest
-version: '0.1.2'
+name:  roc
+title: ROC Analysis for Continuous Predictor
+menuGroup: Diagnostic
+version: '0.1.3'
 jas: '1.2'
 
 options:
@@ -35,9 +35,56 @@ options:
     - name: boolz
       title: z-test for AUC
       type: Bool
-      default: TRUE
-      
+      default: FALSE
+
     - name: boolCo
-      title: Cut-offs table
+      title: Include Cut-offs Table
       type: Bool
       default: FALSE
+      
+    - name: cRates
+      title: Classification Rates
+      type: NMXList
+      options:
+        - name: tpr
+          title: TPR
+        - name: fpr
+          title: FPR
+        - name: tnr
+          title: TNR
+        - name: fnr
+          title: FNR
+      default:
+        - tpr
+        - fpr
+    
+    - name: pMetrics
+      title: Performance Metrics
+      type: NMXList
+      options:
+        - name: accu
+          title: Accuracy
+        - name: bAccu
+          title: Balanced Accuracy
+      default: null
+      
+    - name: pValue
+      title: Predictive Value
+      type: NMXList
+      options:
+        - name: prec
+          title: Precision (PPV)
+        - name: npv
+          title: NPV
+      default: null
+      
+    - name: cIndex
+      title: ROC Composite Indexes
+      type: NMXList
+      options:
+        - name: tl
+          title: Top-left dist.
+        - name: yo
+          title: Youden’s J
+      default: null
+...

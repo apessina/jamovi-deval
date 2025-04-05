@@ -1,8 +1,8 @@
-title: ROC Analysis for Continuous Predictors
-name: ROC
+title: ROC Analysis for Continuous Predictor
+name: roc
 jus: '3.0'
 stage: 0
-compilerMode: aggressive
+compilerMode: tame
 children:
   - type: VariableSupplier
     persistentItems: false
@@ -25,13 +25,100 @@ children:
   - type: LayoutBox
     margin: large
     children:
-      - type: TextBox
-        name: DeLongCl
-        format: number
+      - type: Label
+        label: Area Under the ROC Curve
+        style: list-inline
+        children:
+          - type: TextBox
+            name: DeLongCl
+            format: number
+          - type: CheckBox
+            name: boolz
   - type: LayoutBox
     margin: large
     children:
       - type: CheckBox
-        name: boolz
-      - type: CheckBox
         name: boolCo
+        children:
+        - type: Label
+          label: Classification Rates
+          cell:
+            row: 0
+            column: 0
+          style: list-inline
+          children:
+            - name: cRates_tpr
+              type: CheckBox
+              enable: (boolCo)
+              optionName: cRates
+              optionPart: tpr
+            - name: cRates_fpr
+              type: CheckBox
+              enable: (boolCo)
+              optionName: cRates
+              optionPart: fpr
+            - name: cRates_tnr
+              type: CheckBox
+              enable: (boolCo)
+              optionName: cRates
+              optionPart: tnr
+            - name: cRates_fnr
+              type: CheckBox
+              enable: (boolCo)
+              optionName: cRates
+              optionPart: fnr
+          name: cRates
+        - type: Label
+          label: Performance Metrics
+          cell:
+            row: 1
+            column: 0
+          style: list-inline
+          children:
+            - name: pMetrics_accu
+              type: CheckBox
+              enable: (boolCo)
+              optionName: pMetrics
+              optionPart: accu
+            - name: pMetrics_bAccu
+              type: CheckBox
+              enable: (boolCo)
+              optionName: pMetrics
+              optionPart: bAccu
+          name: pMetrics
+        - type: Label
+          label: Predictive Value
+          cell:
+            row: 0
+            column: 1
+          style: list-inline
+          children:
+            - name: pValue_prec
+              type: CheckBox
+              enable: (boolCo)
+              optionName: pValue
+              optionPart: prec
+            - name: pValue_npv
+              type: CheckBox
+              enable: (boolCo)
+              optionName: pValue
+              optionPart: npv
+          name: pValue
+        - type: Label
+          label: ROC Composite Indexes
+          cell:
+            row: 1
+            column: 1
+          style: list-inline
+          children:
+            - name: cIndex_tl
+              type: CheckBox
+              enable: (boolCo)
+              optionName: cIndex
+              optionPart: tl
+            - name: cIndex_yo
+              type: CheckBox
+              enable: (boolCo)
+              optionName: cIndex
+              optionPart: yo
+          name: cIndex

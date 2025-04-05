@@ -2,12 +2,12 @@
 # This script is the core of the ROC Analysis using pROC R library. It uses one
 # continuous variable and one outcome variable from the UI to generate the ROC
 # curve, calculate AUC and the local maximas table. The ROC plot is printed.
-# Last edit: 28 March 2025; PESSINA, A. L. R.
+# Last edit: 05 April 2025; AP.
 
 # Define the R6Class for the module
-ROCClass <- if (requireNamespace('jmvcore', quietly=TRUE)) R6::R6Class(
-  "ROCClass",
-  inherit = ROCBase,
+rocClass <- if (requireNamespace('jmvcore', quietly=TRUE)) R6::R6Class(
+  "rocClass",
+  inherit = rocBase,
   private = list(
     
     # Create the .run function for data, text and tables
@@ -24,15 +24,14 @@ ROCClass <- if (requireNamespace('jmvcore', quietly=TRUE)) R6::R6Class(
       ## Get the data
       data <- self$data # get the UI dataframe
       data <- na.omit(data) # remove NAs
-      
-      ## Check if the outcome variable is binary (0 and 1)
-      if (length(levels(as.factor(data[[self$options$varOutc]]))) != 2) {
-        return()
-      }
-      
+
       ## Select our interesting data
       predictors <- data[[self$options$varPred]] # continuous
       responses <- data[[self$options$varOutc]] # binary
+      
+      ## Check if the outcome variable is binary, with only 0 and 1
+      if (any(responses!=0 & responses!=1))
+        stop('Inform only 1 for Cases and 0 for Controls (healthy)')
       
       ##############################################################
       ##### Making the calculations and presenting the results #####
@@ -89,8 +88,12 @@ ROCClass <- if (requireNamespace('jmvcore', quietly=TRUE)) R6::R6Class(
           FPR=roc_coords$fpr[i], # 1-specificity of the cut-off 
           TNR=roc_coords$tnr[i], # specificity of the cut-off 
           FNR=roc_coords$fnr[i], # 1-sensitivity  of the cut-off 
+          Accuracy=roc_coords$accuracy[i], # 1-sensitivity  of the cut-off 
+          bAccu=mean(roc_coords$tpr[i], roc_coords$tnr[i]), # 
+          Precision=roc_coords$ppv[i], #
+          NPV=roc_coords$npv[i], #
           Topleft=roc_coords$closest.topleft[i], # top-left dist. of the cut-off 
-          Youden=roc_coords$youden[i] # youden´s J of the cut-off 
+          Youden=roc_coords$youden[i] # Youden´s J of the cut-off 
         ))          
       }
       
