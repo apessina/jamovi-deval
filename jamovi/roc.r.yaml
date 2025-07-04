@@ -8,41 +8,35 @@ items:
     - name:  tableMain
       title: Area Under the ROC Curve
       type: Table
-      rows:  1
+      rows:  (pred)
       notes:
-          CI: "Normal-based CI with AUC variance from DeLong's method"
+          hip: "H₁: AUC > 0.5"
       columns:
         - name: var
           title: ''
           type: text
-        - name: AUC
+          content: ($key)
+        - name: auc
+          title: "AUC"
           type: number
-        - name: CI
-          title: Confidence interval
-          type: text
-      refs: 
-        - deval
-        - pROC
-
-    - name:  tablez
-      visible: (boolz)
-      title: z-test for AUC
-      type: Table
-      rows:  1
-      notes:
-          hip: "H₁: AUC ≠ 0.5"
-      columns:
-        - name: var
-          title: ''
-          type: text
-        - name: test
-          title: ''
-          type: text
-        - name: Statistics
-          type: text
-        - name: p
-          title: p-value
+        - name: cil
+          title: "Lower"
+          superTitle: "Confidence Interval"
           type: number
+        - name: ciu
+          title: "Upper"
+          superTitle: "Confidence Interval"
+          type: number
+        - name: statistics
+          title: "Statistics"
+          superTitle: "Z-Test (DeLong)"
+          type: number
+          visible: (boolz)
+        - name: pvalue
+          title: "p-value"
+          superTitle: "Z-Test (DeLong)"
+          type: number
+          visible: (boolz)
           format: zto,pvalue
       refs: 
         - deval

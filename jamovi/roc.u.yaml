@@ -9,10 +9,10 @@ children:
     stretchFactor: 1
     children:
       - type: TargetLayoutBox
-        label: Predictior Variable
+        label: Predictior
         children:
           - type: VariablesListBox
-            name: varPred
+            name: pred
             maxItemCount: 1
             isTarget: true
       - type: TargetLayoutBox
@@ -30,7 +30,7 @@ children:
         style: list-inline
         children:
           - type: TextBox
-            name: DeLongCl
+            name: ciWidth
             format: number
           - type: CheckBox
             name: boolz

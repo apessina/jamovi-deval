@@ -2,15 +2,15 @@
 name:  roc
 title: ROC Analysis for Continuous Predictor
 menuGroup: Diagnostic
-version: '0.1.3'
+version: '0.1.4'
 jas: '1.2'
 
 options:
     - name: data
       type: Data
 
-    - name: varPred
-      title: Predictior Variable
+    - name: pred
+      title: Predictior
       type: Variable
       suggested:
         - continuous
@@ -25,7 +25,7 @@ options:
       permitted:
         - factor
 
-    - name: DeLongCl
+    - name: ciWidth
       title: Confidence level (%)
       type: Number
       min: 50

@@ -6,9 +6,9 @@ rocOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
     inherit = jmvcore::Options,
     public = list(
         initialize = function(
-            varPred = NULL,
+            pred = NULL,
             varOutc = NULL,
-            DeLongCl = 95,
+            ciWidth = 95,
             boolz = FALSE,
             boolCo = FALSE,
             cRates = list(
@@ -24,9 +24,9 @@ rocOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 requiresData=TRUE,
                 ...)
 
-            private$..varPred <- jmvcore::OptionVariable$new(
-                "varPred",
-                varPred,
+            private$..pred <- jmvcore::OptionVariable$new(
+                "pred",
+                pred,
                 suggested=list(
                     "continuous"),
                 permitted=list(
@@ -38,9 +38,9 @@ rocOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                     "nominal"),
                 permitted=list(
                     "factor"))
-            private$..DeLongCl <- jmvcore::OptionNumber$new(
-                "DeLongCl",
-                DeLongCl,
+            private$..ciWidth <- jmvcore::OptionNumber$new(
+                "ciWidth",
+                ciWidth,
                 min=50,
                 max=99.9,
                 default=95)
@@ -85,9 +85,9 @@ rocOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                     "yo"),
                 default=NULL)
 
-            self$.addOption(private$..varPred)
+            self$.addOption(private$..pred)
             self$.addOption(private$..varOutc)
-            self$.addOption(private$..DeLongCl)
+            self$.addOption(private$..ciWidth)
             self$.addOption(private$..boolz)
             self$.addOption(private$..boolCo)
             self$.addOption(private$..cRates)
@@ -96,9 +96,9 @@ rocOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
             self$.addOption(private$..cIndex)
         }),
     active = list(
-        varPred = function() private$..varPred$value,
+        pred = function() private$..pred$value,
         varOutc = function() private$..varOutc$value,
-        DeLongCl = function() private$..DeLongCl$value,
+        ciWidth = function() private$..ciWidth$value,
         boolz = function() private$..boolz$value,
         boolCo = function() private$..boolCo$value,
         cRates = function() private$..cRates$value,
@@ -106,9 +106,9 @@ rocOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
         pValue = function() private$..pValue$value,
         cIndex = function() private$..cIndex$value),
     private = list(
-        ..varPred = NA,
+        ..pred = NA,
         ..varOutc = NA,
-        ..DeLongCl = NA,
+        ..ciWidth = NA,
         ..boolz = NA,
         ..boolCo = NA,
         ..cRates = NA,
@@ -122,7 +122,6 @@ rocResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
     inherit = jmvcore::Group,
     active = list(
         tableMain = function() private$.items[["tableMain"]],
-        tablez = function() private$.items[["tablez"]],
         tableCo = function() private$.items[["tableCo"]],
         plot = function() private$.items[["plot"]]),
     private = list(),
@@ -136,48 +135,41 @@ rocResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 options=options,
                 name="tableMain",
                 title="Area Under the ROC Curve",
-                rows=1,
+                rows="(pred)",
                 notes=list(
-                    `CI`="Normal-based CI with AUC variance from DeLong's method"),
+                    `hip`="H\u2081: AUC > 0.5"),
                 columns=list(
                     list(
                         `name`="var", 
                         `title`="", 
-                        `type`="text"),
+                        `type`="text", 
+                        `content`="($key)"),
                     list(
-                        `name`="AUC", 
+                        `name`="auc", 
+                        `title`="AUC", 
                         `type`="number"),
                     list(
-                        `name`="CI", 
-                        `title`="Confidence interval", 
-                        `type`="text")),
-                refs=list(
-                    "deval",
-                    "pROC")))
-            self$add(jmvcore::Table$new(
-                options=options,
-                name="tablez",
-                visible="(boolz)",
-                title="z-test for AUC",
-                rows=1,
-                notes=list(
-                    `hip`="H\u2081: AUC \u2260 0.5"),
-                columns=list(
+                        `name`="cil", 
+                        `title`="Lower", 
+                        `superTitle`="Confidence Interval", 
+                        `type`="number"),
                     list(
-                        `name`="var", 
-                        `title`="", 
-                        `type`="text"),
+                        `name`="ciu", 
+                        `title`="Upper", 
+                        `superTitle`="Confidence Interval", 
+                        `type`="number"),
                     list(
-                        `name`="test", 
-                        `title`="", 
-                        `type`="text"),
-                    list(
-                        `name`="Statistics", 
-                        `type`="text"),
-                    list(
-                        `name`="p", 
-                        `title`="p-value", 
+                        `name`="statistics", 
+                        `title`="Statistics", 
+                        `superTitle`="Z-Test (DeLong)", 
                         `type`="number", 
+                        `visible`="(boolz)"),
+                    list(
+                        `name`="pvalue", 
+                        `title`="p-value", 
+                        `superTitle`="Z-Test (DeLong)", 
+                        `type`="number", 
+                        `visible`="(boolz)", 
                         `format`="zto,pvalue")),
                 refs=list(
                     "deval",
@@ -280,9 +272,9 @@ rocBase <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
 #'
 #' 
 #' @param data .
-#' @param varPred .
+#' @param pred .
 #' @param varOutc .
-#' @param DeLongCl .
+#' @param ciWidth .
 #' @param boolz .
 #' @param boolCo .
 #' @param cRates .
@@ -292,7 +284,6 @@ rocBase <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
 #' @return A results object containing:
 #' \tabular{llllll}{
 #'   \code{results$tableMain} \tab \tab \tab \tab \tab a table \cr
-#'   \code{results$tablez} \tab \tab \tab \tab \tab a table \cr
 #'   \code{results$tableCo} \tab \tab \tab \tab \tab a table \cr
 #'   \code{results$plot} \tab \tab \tab \tab \tab an image \cr
 #' }
@@ -306,9 +297,9 @@ rocBase <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
 #' @export
 roc <- function(
     data,
-    varPred,
+    pred,
     varOutc,
-    DeLongCl = 95,
+    ciWidth = 95,
     boolz = FALSE,
     boolCo = FALSE,
     cRates = list(
@@ -321,20 +312,20 @@ roc <- function(
     if ( ! requireNamespace("jmvcore", quietly=TRUE))
         stop("roc requires jmvcore to be installed (restart may be required)")
 
-    if ( ! missing(varPred)) varPred <- jmvcore::resolveQuo(jmvcore::enquo(varPred))
+    if ( ! missing(pred)) pred <- jmvcore::resolveQuo(jmvcore::enquo(pred))
     if ( ! missing(varOutc)) varOutc <- jmvcore::resolveQuo(jmvcore::enquo(varOutc))
     if (missing(data))
         data <- jmvcore::marshalData(
             parent.frame(),
-            `if`( ! missing(varPred), varPred, NULL),
+            `if`( ! missing(pred), pred, NULL),
             `if`( ! missing(varOutc), varOutc, NULL))
 
     for (v in varOutc) if (v %in% names(data)) data[[v]] <- as.factor(data[[v]])
 
     options <- rocOptions$new(
-        varPred = varPred,
+        pred = pred,
         varOutc = varOutc,
-        DeLongCl = DeLongCl,
+        ciWidth = ciWidth,
         boolz = boolz,
         boolCo = boolCo,
         cRates = cRates,

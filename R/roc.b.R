@@ -13,12 +13,10 @@ rocClass <- if (requireNamespace('jmvcore', quietly=TRUE)) R6::R6Class(
     # Create the .run function for data, text and tables
     .run = function() {
       
-      ##############################################
-      ##### Defining the data for the analysis #####
-      ##############################################
+      ##### User Data #####
       
       ## Check if the UI variables are defined
-      if (is.null(self$options$varPred) || is.null(self$options$varOutc))
+      if (is.null(self$options$pred) || is.null(self$options$varOutc))
         return()
       
       ## Get the data
@@ -26,45 +24,42 @@ rocClass <- if (requireNamespace('jmvcore', quietly=TRUE)) R6::R6Class(
       data <- na.omit(data) # remove NAs
 
       ## Select our interesting data
-      predictors <- data[[self$options$varPred]] # continuous
+      predictors <- data[[self$options$pred]] # continuous
       responses <- data[[self$options$varOutc]] # binary
       
       ## Check if the outcome variable is binary, with only 0 and 1
       if (any(responses!=0 & responses!=1))
         stop('Inform only 1 for Cases and 0 for Controls (healthy)')
       
-      ##############################################################
-      ##### Making the calculations and presenting the results #####
-      ##############################################################
+      ##### Calculations #####
       
       ##  Calculate the ROC Curve using pROC library
       roc_obj <- pROC::roc(responses, predictors)
       
       ## Calculate the Area Under the Curve with confidence interval
-      auc_ci <- pROC::ci.auc(roc_obj, conf.level=self$options$DeLongCl/100, 
+      auc_ci <- pROC::ci.auc(roc_obj, conf.level=self$options$ciWidth/100, 
                              method="delong") # CI with DeLong's variance
+      
+      ## Calculate DeLong's Z with H₁: AUC > 0.5
+      auc_se <- sqrt(pROC::var(roc_obj, method="delong")) # standard error
+      z <- (pROC::auc(roc_obj) - 0.5) / auc_se # Z statistics
+      p <- 1 - pnorm(z) # unilateral p-value
+      
+      ##### Results ####
       
       ## Fill the main results one-line table
       tableMain <- self$results$tableMain
+      
+      ciText <- paste0(self$options$ciWidth, "% Confidence Interval")
+      tableMain$getColumn('cil')$setSuperTitle(ciText)
+      tableMain$getColumn('ciu')$setSuperTitle(ciText)
+      
       tableMain$setRow(rowNo=1, values=list(
-        var=self$options$varPred, # name of the predictor variable
-        AUC=round(auc_ci[2], 3), # AUC value of the calculated curve
-        CI=sprintf("%d%%: %.3f–%.3f", # ex. 95%: 0.678-0.789 (DeLong)
-                   round(self$options$DeLongCl), auc_ci[1], auc_ci[3])
-      ))
-      
-      ## Calculate DeLong's z with H₁: AUC ≠ 0.5
-      auc_se <- sqrt(pROC::var(roc_obj, method="delong")) # standard error
-      z <- (pROC::auc(roc_obj) - 0.5) / auc_se # z-test statistics
-      p <- 2 * (1 - pnorm(abs(z))) # p-value of the test
-      
-      ## Fill the z-test table
-      tablez <- self$results$tablez
-      tablez$setRow(rowNo=1, values=list(
-        var=self$options$varPred, # name of the predictor variable
-        test="DeLong's z", # name of the test
-        Statistics=z, # z-test statistics
-        p=p # p-value of the test
+        auc=format(round(auc_ci[2], 3), nsmall=3), # AUC 
+        cil=format(round(auc_ci[1], 3), nsmall=3), # Lower AUC CI
+        ciu=format(round(auc_ci[3], 3), nsmall=3), # Upper AUC CI
+        statistics=format(round(z, 3), nsmall=3), # Z statistics for AUC
+        pvalue=p # z-test p-value
       ))
       
       ## Get the local maximas
@@ -72,14 +67,14 @@ rocClass <- if (requireNamespace('jmvcore', quietly=TRUE)) R6::R6Class(
       
       ## Set the note informing the direction of the curve
       if (roc_obj$direction == ">") {
-        dirNote <- paste("Predict positive if:",self$options$varPred,"> cut-off")
+        dirNote <- paste("Predict positive if:",self$options$pred,"> cut-off")
       } else {
-        dirNote <- paste("Predict positive if:",self$options$varPred,"< cut-off")
+        dirNote <- paste("Predict positive if:",self$options$pred,"< cut-off")
       }
       
       ## Fill the cut-offs table
       tableCo <- self$results$tableCo
-      tableCo$setTitle(self$options$varPred) # title: predictor name
+      tableCo$setTitle(self$options$pred) # title: predictor name
       tableCo$setNote("dir", dirNote, init=FALSE) # note: ROC curve direction
       for (i in seq_along(roc_coords$threshold)) { # one new row per cut-off
         tableCo$addRow(rowKey=i, values=list(
@@ -97,9 +92,7 @@ rocClass <- if (requireNamespace('jmvcore', quietly=TRUE)) R6::R6Class(
         ))          
       }
       
-      #######################################
-      ##### Creating the ROC Curve plot #####
-      #######################################
+      ##### Plot #####
       
       ## Set-up the plot object with the plot data in a dataframe
       image <- self$results$plot
@@ -122,7 +115,7 @@ rocClass <- if (requireNamespace('jmvcore', quietly=TRUE)) R6::R6Class(
         image$state$responses, image$state$predictors, # variables
         percent=FALSE, # show the sensitivity and specificity as percentages
         legacy.axes=TRUE, # increasing specificity axis (1-Specificity)
-        main=self$options$varPred, # title: predictor name
+        main=self$options$pred, # title: predictor name
         print.thres="local maximas", print.thres.pattern="%.2f", # cut-offs
         print.auc=TRUE, print.auc.x=40, print.auc.y=10, # auc position
         identity.col="red", identity.lty=2 # red dashed discrimination line
