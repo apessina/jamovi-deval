@@ -1,16 +1,16 @@
 ---
 name:  roc
-title: ROC Analysis for Continuous Predictor
+title: "ROC Analysis for Continuous Predictor"
 jrs:   '1.1'
 
 items:
 
     - name:  tableMain
-      title: Area Under the ROC Curve
+      title: "Area Under the ROC Curve"
       type: Table
       rows:  (pred)
       notes:
-          hip: "H₁: AUC > 0.5"
+          hip: NULL
       columns:
         - name: var
           title: ''
@@ -43,12 +43,15 @@ items:
         - pROC
       
     - name:  tableCo
-      visible: (boolCo)
-      title: Cut-offs
+      visible: (cRates:tpr || cRates:fpr || cRates:tnr || cRates:fnr || pMetrics:accu || pMetrics:bAccu || pValue:prec || pValue:npv || cIndex:tl || cIndex:yo)
+      title: Local Maximas
       type: Table
       notes:
           dir: NULL
       columns:
+        - name: var
+          title: ''
+          type: text
         - name: Cutoff
           title: 'Cut-off'
           type: number

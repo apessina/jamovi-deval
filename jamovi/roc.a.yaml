@@ -1,8 +1,10 @@
 ---
 name:  roc
-title: ROC Analysis for Continuous Predictor
+title: "ROC Analysis for Continuous Predictor"
 menuGroup: Diagnostic
-version: '0.1.4'
+menuTitle: ROC Analysis
+menuSubtitle: Continuous Predictor
+version: '0.1.5'
 jas: '1.2'
 
 options:
@@ -17,7 +19,7 @@ options:
       permitted:
         - numeric
 
-    - name: varOutc
+    - name: resp
       title: Case (1) / Control (0) Variable
       type: Variable
       suggested:
@@ -33,15 +35,36 @@ options:
       default: 95
       
     - name: boolz
-      title: z-test for AUC
+      title: Z-Test for AUC
       type: Bool
       default: FALSE
 
-    - name: boolCo
-      title: Include Cut-offs Table
+    - name: coLines
+      title: "Show first"
+      type: Number
+      min: 1
+      max: 10
+      default: 5
+    
+    - name: sortBy
+      title: "Sort by"
+      type: List
+      options:
+        - name: closest.topleft
+          title: "Euclidean"
+        - name: youden
+          title: "Youden"
+        - name: tpr
+          title: "Sensitivity"
+        - name: tnr
+          title: "Specificity"
+      default: closest.topleft
+
+    - name: decrease
+      title: "Decreasing"
       type: Bool
       default: FALSE
-      
+
     - name: cRates
       title: Classification Rates
       type: NMXList

@@ -7,10 +7,12 @@ rocOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
     public = list(
         initialize = function(
             pred = NULL,
-            varOutc = NULL,
+            resp = NULL,
             ciWidth = 95,
             boolz = FALSE,
-            boolCo = FALSE,
+            coLines = 5,
+            sortBy = "closest.topleft",
+            decrease = FALSE,
             cRates = list(
                 "tpr",
                 "fpr"),
@@ -31,9 +33,9 @@ rocOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                     "continuous"),
                 permitted=list(
                     "numeric"))
-            private$..varOutc <- jmvcore::OptionVariable$new(
-                "varOutc",
-                varOutc,
+            private$..resp <- jmvcore::OptionVariable$new(
+                "resp",
+                resp,
                 suggested=list(
                     "nominal"),
                 permitted=list(
@@ -48,9 +50,24 @@ rocOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 "boolz",
                 boolz,
                 default=FALSE)
-            private$..boolCo <- jmvcore::OptionBool$new(
-                "boolCo",
-                boolCo,
+            private$..coLines <- jmvcore::OptionNumber$new(
+                "coLines",
+                coLines,
+                min=1,
+                max=10,
+                default=5)
+            private$..sortBy <- jmvcore::OptionList$new(
+                "sortBy",
+                sortBy,
+                options=list(
+                    "closest.topleft",
+                    "youden",
+                    "tpr",
+                    "tnr"),
+                default="closest.topleft")
+            private$..decrease <- jmvcore::OptionBool$new(
+                "decrease",
+                decrease,
                 default=FALSE)
             private$..cRates <- jmvcore::OptionNMXList$new(
                 "cRates",
@@ -86,10 +103,12 @@ rocOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 default=NULL)
 
             self$.addOption(private$..pred)
-            self$.addOption(private$..varOutc)
+            self$.addOption(private$..resp)
             self$.addOption(private$..ciWidth)
             self$.addOption(private$..boolz)
-            self$.addOption(private$..boolCo)
+            self$.addOption(private$..coLines)
+            self$.addOption(private$..sortBy)
+            self$.addOption(private$..decrease)
             self$.addOption(private$..cRates)
             self$.addOption(private$..pMetrics)
             self$.addOption(private$..pValue)
@@ -97,20 +116,24 @@ rocOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
         }),
     active = list(
         pred = function() private$..pred$value,
-        varOutc = function() private$..varOutc$value,
+        resp = function() private$..resp$value,
         ciWidth = function() private$..ciWidth$value,
         boolz = function() private$..boolz$value,
-        boolCo = function() private$..boolCo$value,
+        coLines = function() private$..coLines$value,
+        sortBy = function() private$..sortBy$value,
+        decrease = function() private$..decrease$value,
         cRates = function() private$..cRates$value,
         pMetrics = function() private$..pMetrics$value,
         pValue = function() private$..pValue$value,
         cIndex = function() private$..cIndex$value),
     private = list(
         ..pred = NA,
-        ..varOutc = NA,
+        ..resp = NA,
         ..ciWidth = NA,
         ..boolz = NA,
-        ..boolCo = NA,
+        ..coLines = NA,
+        ..sortBy = NA,
+        ..decrease = NA,
         ..cRates = NA,
         ..pMetrics = NA,
         ..pValue = NA,
@@ -137,7 +160,7 @@ rocResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 title="Area Under the ROC Curve",
                 rows="(pred)",
                 notes=list(
-                    `hip`="H\u2081: AUC > 0.5"),
+                    `hip`=NULL),
                 columns=list(
                     list(
                         `name`="var", 
@@ -177,11 +200,15 @@ rocResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
             self$add(jmvcore::Table$new(
                 options=options,
                 name="tableCo",
-                visible="(boolCo)",
-                title="Cut-offs",
+                visible="(cRates:tpr || cRates:fpr || cRates:tnr || cRates:fnr || pMetrics:accu || pMetrics:bAccu || pValue:prec || pValue:npv || cIndex:tl || cIndex:yo)",
+                title="Local Maximas",
                 notes=list(
                     `dir`=NULL),
                 columns=list(
+                    list(
+                        `name`="var", 
+                        `title`="", 
+                        `type`="text"),
                     list(
                         `name`="Cutoff", 
                         `title`="Cut-off", 
@@ -255,7 +282,7 @@ rocBase <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
             super$initialize(
                 package = "deval",
                 name = "roc",
-                version = c(0,1,3),
+                version = c(0,1,5),
                 options = options,
                 results = rocResults$new(options=options),
                 data = data,
@@ -273,10 +300,12 @@ rocBase <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
 #' 
 #' @param data .
 #' @param pred .
-#' @param varOutc .
+#' @param resp .
 #' @param ciWidth .
 #' @param boolz .
-#' @param boolCo .
+#' @param coLines .
+#' @param sortBy .
+#' @param decrease .
 #' @param cRates .
 #' @param pMetrics .
 #' @param pValue .
@@ -298,10 +327,12 @@ rocBase <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
 roc <- function(
     data,
     pred,
-    varOutc,
+    resp,
     ciWidth = 95,
     boolz = FALSE,
-    boolCo = FALSE,
+    coLines = 5,
+    sortBy = "closest.topleft",
+    decrease = FALSE,
     cRates = list(
                 "tpr",
                 "fpr"),
@@ -313,21 +344,23 @@ roc <- function(
         stop("roc requires jmvcore to be installed (restart may be required)")
 
     if ( ! missing(pred)) pred <- jmvcore::resolveQuo(jmvcore::enquo(pred))
-    if ( ! missing(varOutc)) varOutc <- jmvcore::resolveQuo(jmvcore::enquo(varOutc))
+    if ( ! missing(resp)) resp <- jmvcore::resolveQuo(jmvcore::enquo(resp))
     if (missing(data))
         data <- jmvcore::marshalData(
             parent.frame(),
             `if`( ! missing(pred), pred, NULL),
-            `if`( ! missing(varOutc), varOutc, NULL))
+            `if`( ! missing(resp), resp, NULL))
 
-    for (v in varOutc) if (v %in% names(data)) data[[v]] <- as.factor(data[[v]])
+    for (v in resp) if (v %in% names(data)) data[[v]] <- as.factor(data[[v]])
 
     options <- rocOptions$new(
         pred = pred,
-        varOutc = varOutc,
+        resp = resp,
         ciWidth = ciWidth,
         boolz = boolz,
-        boolCo = boolCo,
+        coLines = coLines,
+        sortBy = sortBy,
+        decrease = decrease,
         cRates = cRates,
         pMetrics = pMetrics,
         pValue = pValue,

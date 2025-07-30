@@ -5,7 +5,7 @@ refs:
         author: Pessina, A. L. R.
         year: 2025
         title: 'deval: Diagnostic Test Evaluation'
-        publisher: '(Version 0.1.4) [jamovi module]. DOI available on https://github.com/apessina/jamovi-deval'
+        publisher: '(Version 0.1.5) [jamovi module]. DOI available on https://github.com/apessina/jamovi-deval'
         url: https://github.com/apessina/jamovi-deval
     
     pROC:

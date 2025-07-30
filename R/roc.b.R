@@ -15,26 +15,47 @@ rocClass <- if (requireNamespace('jmvcore', quietly=TRUE)) R6::R6Class(
       
       ##### User Data #####
       
-      ## Check if the UI variables are defined
-      if (is.null(self$options$pred) || is.null(self$options$varOutc))
+      ## Option values into shorter variable names
+      pred  <- self$options$pred
+      resp <- self$options$resp
+      
+      ## Check if variables have any data
+      if (is.null(pred) || is.null(resp))
         return()
       
       ## Get the data
-      data <- self$data # get the UI dataframe
-      data <- na.omit(data) # remove NAs
-
-      ## Select our interesting data
-      predictors <- data[[self$options$pred]] # continuous
-      responses <- data[[self$options$varOutc]] # binary
+      data <- self$data
       
-      ## Check if the outcome variable is binary, with only 0 and 1
-      if (any(responses!=0 & responses!=1))
-        stop('Inform only 1 for Cases and 0 for Controls (healthy)')
+      ## Convert to appropriate data types
+      data[[pred]] <- jmvcore::toNumeric(data[[pred]])
+      data[[resp]] <- jmvcore::toNumeric(data[[resp]])
+      
+      ## Remove NAs
+      data <- na.omit(data)
+
+      ## Define data variables
+      predictor <- data[[pred]]
+      response <- data[[resp]]
+      
+      ## Check if there is more than one unique value in the predictor
+      if (length(unique(predictor)) <= 1) {
+        stop("Predictor has no variability.")
+      }
+      
+      ## Check if the outcome variable have only 0 and 1 values
+      if (!all(response %in% c(0, 1))) {
+        stop("Inform only 1 for Cases and 0 for Controls (healthy) in the response variable.")
+      }
+      
+      ## Check if the outcome variable have both 0 and 1 values
+      if (length(unique(response)) != 2) {
+        stop("The response variable must contain both 0 and 1.")
+      }
       
       ##### Calculations #####
       
       ##  Calculate the ROC Curve using pROC library
-      roc_obj <- pROC::roc(responses, predictors)
+      roc_obj <- pROC::roc(response, predictor)
       
       ## Calculate the Area Under the Curve with confidence interval
       auc_ci <- pROC::ci.auc(roc_obj, conf.level=self$options$ciWidth/100, 
@@ -47,7 +68,7 @@ rocClass <- if (requireNamespace('jmvcore', quietly=TRUE)) R6::R6Class(
       
       ##### Results ####
       
-      ## Fill the main results one-line table
+      ## Fill the main results table
       tableMain <- self$results$tableMain
       
       ciText <- paste0(self$options$ciWidth, "% Confidence Interval")
@@ -62,22 +83,38 @@ rocClass <- if (requireNamespace('jmvcore', quietly=TRUE)) R6::R6Class(
         pvalue=p # z-test p-value
       ))
       
+      if (self$options$boolz)
+        tableMain$setNote("hip", "H₁: AUC > 0.5", init=FALSE)
+      
       ## Get the local maximas
       roc_coords <- pROC::coords(roc_obj, x="local maximas", ret="all")
       
+      ## Order lines
+      roc_coords <- roc_coords[order(roc_coords[[self$options$sortBy]], 
+                                     decreasing=self$options$decrease), ]
+      
       ## Set the note informing the direction of the curve
       if (roc_obj$direction == ">") {
-        dirNote <- paste("Predict positive if:",self$options$pred,"> cut-off")
+        dirNote <- paste("Positive if", self$options$pred, "> cut-off")
+      } else if (roc_obj$direction == "<") {
+        dirNote <- paste("Positive if", self$options$pred, "<= cut-off")
       } else {
-        dirNote <- paste("Predict positive if:",self$options$pred,"< cut-off")
+        stop(
+          paste0("Invalid direction when calculating cut-offs.\n",
+                 "Check if the input data can generate a valid ROC curve.")
+        )
       }
+      
+      ## Set lines limit
+      lm_lines <- self$options$coLines
+      if (lm_lines > nrow(roc_coords))
+        lm_lines <- nrow(roc_coords)
       
       ## Fill the cut-offs table
       tableCo <- self$results$tableCo
-      tableCo$setTitle(self$options$pred) # title: predictor name
-      tableCo$setNote("dir", dirNote, init=FALSE) # note: ROC curve direction
-      for (i in seq_along(roc_coords$threshold)) { # one new row per cut-off
+      for (i in seq_len(lm_lines)) { # one new row per cut-off
         tableCo$addRow(rowKey=i, values=list(
+          var = if (i==1) self$options$pred,
           Cutoff=roc_coords$threshold[i], # cut-off 
           TPR=roc_coords$tpr[i], # sensitivity of the cut-off 
           FPR=roc_coords$fpr[i], # 1-specificity of the cut-off 
@@ -92,11 +129,13 @@ rocClass <- if (requireNamespace('jmvcore', quietly=TRUE)) R6::R6Class(
         ))          
       }
       
+      tableCo$setNote("dir", dirNote, init=FALSE) # note: ROC curve direction
+      
       ##### Plot #####
       
       ## Set-up the plot object with the plot data in a dataframe
       image <- self$results$plot
-      image$setState(data.frame(responses=responses, predictors=predictors))
+      image$setState(data.frame(response=response, predictor=predictor))
       
     }, # close the .run function
     
@@ -112,7 +151,7 @@ rocClass <- if (requireNamespace('jmvcore', quietly=TRUE)) R6::R6Class(
       
       ## Create and set-up the ROC Curve plot using the pROC library
       pROC::plot.roc(
-        image$state$responses, image$state$predictors, # variables
+        image$state$response, image$state$predictor, # variables
         percent=FALSE, # show the sensitivity and specificity as percentages
         legacy.axes=TRUE, # increasing specificity axis (1-Specificity)
         main=self$options$pred, # title: predictor name

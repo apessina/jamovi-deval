@@ -1,12 +1,12 @@
 ---
 title: Diagnostic Test Evaluation
 name: deval
-version: 0.1.4
+version: 0.1.5
 jms: '1.0'
 authors:
   - André L. R. Pessina
 maintainer: André L. R. Pessina <apessina@ufmg.br>
-date: '2025-07-04'
+date: '2025-07-30'
 type: R
 description: >-
   This package provides a ROC Analysis for Continuous Predictor to evaluate the 
@@ -16,7 +16,8 @@ analyses:
     name: roc
     ns: deval
     menuGroup: Diagnostic
-    menuTitle: ROC Analysis for Continuous Predictor
+    menuTitle: ROC Analysis
+    menuSubtitle: Continuous Predictor
 usesNative: true
 minApp: 1.0.8
 
