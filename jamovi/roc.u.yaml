@@ -1,4 +1,4 @@
-title: "ROC Analysis for Continuous Predictor"
+title: ROC Analysis for Continuous Predictor
 name: roc
 jus: '3.0'
 stage: 0
@@ -16,7 +16,7 @@ children:
             maxItemCount: 1
             isTarget: true
       - type: TargetLayoutBox
-        label: Case (1) / Control (0) Variable
+        label: Binary Outcome
         children:
           - type: VariablesListBox
             name: resp
@@ -24,16 +24,60 @@ children:
             isTarget: true
   - type: LayoutBox
     margin: large
+    stretchFactor: 1
     children:
       - type: Label
-        label: Area Under the ROC Curve
-        style: list-inline
+        label: Area Under the Curve
         children:
           - type: TextBox
             name: ciWidth
             format: number
+            suffix: '%'
           - type: CheckBox
             name: boolz
+  - type: LayoutBox
+    margin: large
+    stretchFactor: 1
+    children:
+      - type: LayoutBox
+        cell:
+          column: 0
+          row: 0
+        stretchFactor: 1
+        children:
+          - type: Label
+            label: Groups Description
+            children:
+              - type: CheckBox
+                name: medians
+              - type: CheckBox
+                name: means
+              - type: CheckBox
+                name: suggest
+      - type: LayoutBox
+        cell:
+          column: 1
+          row: 0
+        stretchFactor: 1
+        children:
+          - type: Label
+            label: Test Direction
+            children:
+              - type: RadioButton
+                name: direction_auto
+                optionName: direction
+                optionPart: auto
+                label: Auto
+              - type: RadioButton
+                name: direction_greater
+                optionName: direction
+                optionPart: greater
+                label: Control > Case
+              - type: RadioButton
+                name: direction_less
+                optionName: direction
+                optionPart: less
+                label: Control < Case
   - type: CollapseBox
     label: Local Maximas
     collapsed: false
@@ -59,7 +103,7 @@ children:
                       - type: TextBox
                         name: coLines
                         format: number
-                        suffix: 'lines' 
+                        suffix: lines
                   - type: LayoutBox
                     cell:
                       column: 0

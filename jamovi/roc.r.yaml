@@ -6,7 +6,7 @@ jrs:   '1.1'
 items:
 
     - name:  tableMain
-      title: "Area Under the ROC Curve"
+      title: "Area Under the Curve"
       type: Table
       rows:  (pred)
       notes:
@@ -41,10 +41,49 @@ items:
       refs: 
         - deval
         - pROC
+
+    - name: tableDir
+      visible: (medians || means || suggest)
+      title: "Test Direction"
+      type: Table
+      rows: (pred)
+      notes:
+          hip: NULL
+      columns:
+        - name: var
+          title: ''
+          type: text
+          content: ($key)
+        - name: control_median
+          title: "Control"
+          superTitle: "Median"
+          type: number
+          visible: (medians)
+        - name: case_median
+          title: "Case"
+          superTitle: "Median"
+          type: number
+          visible: (medians)
+        - name: control_mean
+          title: "Control"
+          superTitle: "Mean"
+          type: number
+          visible: (means)
+        - name: case_mean
+          title: "Case"
+          superTitle: "Mean"
+          type: number
+          visible: (means)
+        - name: suggest
+          title: "Suggested Direction"
+          type: text
+          visible: (suggest)
+      refs: 
+        - deval
       
     - name:  tableCo
       visible: (cRates:tpr || cRates:fpr || cRates:tnr || cRates:fnr || pMetrics:accu || pMetrics:bAccu || pValue:prec || pValue:npv || cIndex:tl || cIndex:yo)
-      title: Local Maximas
+      title: "Local Maximas"
       type: Table
       notes:
           dir: NULL
@@ -97,7 +136,7 @@ items:
         - pROC
 
     - name: plot
-      title: ROC Curve
+      title: "ROC Curve"
       type: Image
       width:  400
       height: 400

@@ -4,7 +4,7 @@ title: "ROC Analysis for Continuous Predictor"
 menuGroup: Diagnostic
 menuTitle: ROC Analysis
 menuSubtitle: Continuous Predictor
-version: '0.1.5'
+version: '0.2.0'
 jas: '1.2'
 
 options:
@@ -12,7 +12,7 @@ options:
       type: Data
 
     - name: pred
-      title: Predictior
+      title: "Predictior"
       type: Variable
       suggested:
         - continuous
@@ -20,7 +20,7 @@ options:
         - numeric
 
     - name: resp
-      title: Case (1) / Control (0) Variable
+      title: "Binary Outcome"
       type: Variable
       suggested:
         - nominal
@@ -28,14 +28,39 @@ options:
         - factor
 
     - name: ciWidth
-      title: Confidence level (%)
+      title: "Confidence level"
       type: Number
       min: 50
       max: 99.9
       default: 95
       
     - name: boolz
-      title: Z-Test for AUC
+      title: "Z-Test for AUC"
+      type: Bool
+      default: FALSE
+
+    - name: direction
+      title: "Test Direction"
+      type: List
+      options:
+        - name: auto
+          title: "Auto"
+        - name: greater
+          title: "Control > Case"
+        - name: less
+          title: "Control < Case"
+      default: auto
+      
+    - name: medians
+      title: "Show medians"
+      type: Bool
+      default: FALSE
+    - name: means
+      title: "Show means"
+      type: Bool
+      default: FALSE
+    - name: suggest
+      title: "Suggest Direction"
       type: Bool
       default: FALSE
 
@@ -66,48 +91,48 @@ options:
       default: FALSE
 
     - name: cRates
-      title: Classification Rates
+      title: "Classification Rates"
       type: NMXList
       options:
         - name: tpr
-          title: TPR
+          title: "TPR"
         - name: fpr
-          title: FPR
+          title: "FPR"
         - name: tnr
-          title: TNR
+          title: "TNR"
         - name: fnr
-          title: FNR
+          title: "FNR"
       default:
         - tpr
         - fpr
     
     - name: pMetrics
-      title: Performance Metrics
+      title: "Performance Metrics"
       type: NMXList
       options:
         - name: accu
-          title: Accuracy
+          title: "Accuracy"
         - name: bAccu
-          title: Balanced Accuracy
+          title: "Balanced Accuracy"
       default: null
       
     - name: pValue
-      title: Predictive Value
+      title: "Predictive Value"
       type: NMXList
       options:
         - name: prec
-          title: Precision (PPV)
+          title: "Precision (PPV)"
         - name: npv
-          title: NPV
+          title: "NPV"
       default: null
       
     - name: cIndex
-      title: ROC Composite Indexes
+      title: "ROC Composite Indexes"
       type: NMXList
       options:
         - name: tl
-          title: Top-left dist.
+          title: "Top-left dist."
         - name: yo
-          title: Youden’s J
+          title: "Youden’s J"
       default: null
 ...

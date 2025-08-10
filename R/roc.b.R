@@ -54,8 +54,17 @@ rocClass <- if (requireNamespace('jmvcore', quietly=TRUE)) R6::R6Class(
       
       ##### Calculations #####
       
+      if (self$options$direction=="greater") {
+        direction <- ">"
+      } else if (self$options$direction=="less") {
+        direction <- "<"
+      } else {
+        direction <- "auto"
+      }
+      
       ##  Calculate the ROC Curve using pROC library
-      roc_obj <- pROC::roc(response, predictor)
+      roc_obj <- pROC::roc(response, predictor, 
+                           levels=c(0, 1), direction=direction)
       
       ## Calculate the Area Under the Curve with confidence interval
       auc_ci <- pROC::ci.auc(roc_obj, conf.level=self$options$ciWidth/100, 
@@ -65,6 +74,22 @@ rocClass <- if (requireNamespace('jmvcore', quietly=TRUE)) R6::R6Class(
       auc_se <- sqrt(pROC::var(roc_obj, method="delong")) # standard error
       z <- (pROC::auc(roc_obj) - 0.5) / auc_se # Z statistics
       p <- 1 - pnorm(z) # unilateral p-value
+      
+      ## Calculate means and medians for groups
+      groups_mean <- aggregate(predictor, by=list(group=response), FUN=mean)
+      groups_median <- aggregate(predictor, by=list(group=response), FUN=median)
+      control_mean <- groups_mean$x[groups_mean$group==0]
+      case_mean <- groups_mean$x[groups_mean$group==1]
+      control_median <- groups_median$x[groups_median$group==0]
+      case_median <- groups_median$x[groups_median$group==1]
+      ### Make direction suggestion
+      if (control_median > case_median) {
+        suggest <- "Control > Case"
+      } else if (control_median < case_median) {
+        suggest <- "Control < Case"
+      } else {
+        suggest <- NA
+      }
       
       ##### Results ####
       
@@ -86,6 +111,16 @@ rocClass <- if (requireNamespace('jmvcore', quietly=TRUE)) R6::R6Class(
       if (self$options$boolz)
         tableMain$setNote("hip", "H₁: AUC > 0.5", init=FALSE)
       
+      ## Fill the groups table
+      tableDir <- self$results$tableDir
+      tableDir$setRow(rowNo=1, values=list(
+        control_median=format(round(control_median, 3), nsmall=3), 
+        case_median=format(round(case_median, 3), nsmall=3),
+        control_mean=format(round(control_mean, 3), nsmall=3), 
+        case_mean=format(round(case_mean, 3), nsmall=3),
+        suggest=suggest
+      ))
+      
       ## Get the local maximas
       roc_coords <- pROC::coords(roc_obj, x="local maximas", ret="all")
       
@@ -95,9 +130,9 @@ rocClass <- if (requireNamespace('jmvcore', quietly=TRUE)) R6::R6Class(
       
       ## Set the note informing the direction of the curve
       if (roc_obj$direction == ">") {
-        dirNote <- paste("Positive if", self$options$pred, "> cut-off")
+        dirNote <- paste("Positive if", self$options$pred, "≤ cut-off")
       } else if (roc_obj$direction == "<") {
-        dirNote <- paste("Positive if", self$options$pred, "<= cut-off")
+        dirNote <- paste("Positive if", self$options$pred, "≥ cut-off")
       } else {
         stop(
           paste0("Invalid direction when calculating cut-offs.\n",
@@ -135,7 +170,12 @@ rocClass <- if (requireNamespace('jmvcore', quietly=TRUE)) R6::R6Class(
       
       ## Set-up the plot object with the plot data in a dataframe
       image <- self$results$plot
-      image$setState(data.frame(response=response, predictor=predictor))
+      image$setState(
+        list(
+          df=data.frame(response, predictor),
+          direction=direction
+        )
+      )
       
     }, # close the .run function
     
@@ -151,7 +191,8 @@ rocClass <- if (requireNamespace('jmvcore', quietly=TRUE)) R6::R6Class(
       
       ## Create and set-up the ROC Curve plot using the pROC library
       pROC::plot.roc(
-        image$state$response, image$state$predictor, # variables
+        image$state$df$response, image$state$df$predictor, # variables
+        levels=c(0, 1), direction=image$state$direction, # direction of the curve
         percent=FALSE, # show the sensitivity and specificity as percentages
         legacy.axes=TRUE, # increasing specificity axis (1-Specificity)
         main=self$options$pred, # title: predictor name

@@ -10,6 +10,10 @@ rocOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
             resp = NULL,
             ciWidth = 95,
             boolz = FALSE,
+            direction = "auto",
+            medians = FALSE,
+            means = FALSE,
+            suggest = FALSE,
             coLines = 5,
             sortBy = "closest.topleft",
             decrease = FALSE,
@@ -49,6 +53,26 @@ rocOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
             private$..boolz <- jmvcore::OptionBool$new(
                 "boolz",
                 boolz,
+                default=FALSE)
+            private$..direction <- jmvcore::OptionList$new(
+                "direction",
+                direction,
+                options=list(
+                    "auto",
+                    "greater",
+                    "less"),
+                default="auto")
+            private$..medians <- jmvcore::OptionBool$new(
+                "medians",
+                medians,
+                default=FALSE)
+            private$..means <- jmvcore::OptionBool$new(
+                "means",
+                means,
+                default=FALSE)
+            private$..suggest <- jmvcore::OptionBool$new(
+                "suggest",
+                suggest,
                 default=FALSE)
             private$..coLines <- jmvcore::OptionNumber$new(
                 "coLines",
@@ -106,6 +130,10 @@ rocOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
             self$.addOption(private$..resp)
             self$.addOption(private$..ciWidth)
             self$.addOption(private$..boolz)
+            self$.addOption(private$..direction)
+            self$.addOption(private$..medians)
+            self$.addOption(private$..means)
+            self$.addOption(private$..suggest)
             self$.addOption(private$..coLines)
             self$.addOption(private$..sortBy)
             self$.addOption(private$..decrease)
@@ -119,6 +147,10 @@ rocOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
         resp = function() private$..resp$value,
         ciWidth = function() private$..ciWidth$value,
         boolz = function() private$..boolz$value,
+        direction = function() private$..direction$value,
+        medians = function() private$..medians$value,
+        means = function() private$..means$value,
+        suggest = function() private$..suggest$value,
         coLines = function() private$..coLines$value,
         sortBy = function() private$..sortBy$value,
         decrease = function() private$..decrease$value,
@@ -131,6 +163,10 @@ rocOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
         ..resp = NA,
         ..ciWidth = NA,
         ..boolz = NA,
+        ..direction = NA,
+        ..medians = NA,
+        ..means = NA,
+        ..suggest = NA,
         ..coLines = NA,
         ..sortBy = NA,
         ..decrease = NA,
@@ -145,6 +181,7 @@ rocResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
     inherit = jmvcore::Group,
     active = list(
         tableMain = function() private$.items[["tableMain"]],
+        tableDir = function() private$.items[["tableDir"]],
         tableCo = function() private$.items[["tableCo"]],
         plot = function() private$.items[["plot"]]),
     private = list(),
@@ -157,7 +194,7 @@ rocResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
             self$add(jmvcore::Table$new(
                 options=options,
                 name="tableMain",
-                title="Area Under the ROC Curve",
+                title="Area Under the Curve",
                 rows="(pred)",
                 notes=list(
                     `hip`=NULL),
@@ -197,6 +234,51 @@ rocResults <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 refs=list(
                     "deval",
                     "pROC")))
+            self$add(jmvcore::Table$new(
+                options=options,
+                name="tableDir",
+                visible="(medians || means || suggest)",
+                title="Test Direction",
+                rows="(pred)",
+                notes=list(
+                    `hip`=NULL),
+                columns=list(
+                    list(
+                        `name`="var", 
+                        `title`="", 
+                        `type`="text", 
+                        `content`="($key)"),
+                    list(
+                        `name`="control_median", 
+                        `title`="Control", 
+                        `superTitle`="Median", 
+                        `type`="number", 
+                        `visible`="(medians)"),
+                    list(
+                        `name`="case_median", 
+                        `title`="Case", 
+                        `superTitle`="Median", 
+                        `type`="number", 
+                        `visible`="(medians)"),
+                    list(
+                        `name`="control_mean", 
+                        `title`="Control", 
+                        `superTitle`="Mean", 
+                        `type`="number", 
+                        `visible`="(means)"),
+                    list(
+                        `name`="case_mean", 
+                        `title`="Case", 
+                        `superTitle`="Mean", 
+                        `type`="number", 
+                        `visible`="(means)"),
+                    list(
+                        `name`="suggest", 
+                        `title`="Suggested Direction", 
+                        `type`="text", 
+                        `visible`="(suggest)")),
+                refs=list(
+                    "deval")))
             self$add(jmvcore::Table$new(
                 options=options,
                 name="tableCo",
@@ -282,7 +364,7 @@ rocBase <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
             super$initialize(
                 package = "deval",
                 name = "roc",
-                version = c(0,1,5),
+                version = c(0,2,0),
                 options = options,
                 results = rocResults$new(options=options),
                 data = data,
@@ -303,6 +385,10 @@ rocBase <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
 #' @param resp .
 #' @param ciWidth .
 #' @param boolz .
+#' @param direction .
+#' @param medians .
+#' @param means .
+#' @param suggest .
 #' @param coLines .
 #' @param sortBy .
 #' @param decrease .
@@ -313,6 +399,7 @@ rocBase <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
 #' @return A results object containing:
 #' \tabular{llllll}{
 #'   \code{results$tableMain} \tab \tab \tab \tab \tab a table \cr
+#'   \code{results$tableDir} \tab \tab \tab \tab \tab a table \cr
 #'   \code{results$tableCo} \tab \tab \tab \tab \tab a table \cr
 #'   \code{results$plot} \tab \tab \tab \tab \tab an image \cr
 #' }
@@ -330,6 +417,10 @@ roc <- function(
     resp,
     ciWidth = 95,
     boolz = FALSE,
+    direction = "auto",
+    medians = FALSE,
+    means = FALSE,
+    suggest = FALSE,
     coLines = 5,
     sortBy = "closest.topleft",
     decrease = FALSE,
@@ -358,6 +449,10 @@ roc <- function(
         resp = resp,
         ciWidth = ciWidth,
         boolz = boolz,
+        direction = direction,
+        medians = medians,
+        means = means,
+        suggest = suggest,
         coLines = coLines,
         sortBy = sortBy,
         decrease = decrease,
